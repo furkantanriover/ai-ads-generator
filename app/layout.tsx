@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import { Rubik } from "next/font/google";
+import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import {
   ClerkProvider,
   SignInButton,
@@ -8,6 +7,8 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+import type { Metadata } from "next";
+import { Rubik } from "next/font/google";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -25,26 +26,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={`${rubik.className} antialiased`}>
-          <header className="border-b bg-white px-4 py-3">
-            <div className="mx-auto flex max-w-7xl items-center justify-between">
-              <h1 className="text-xl font-semibold">AI Ads Generator</h1>
-              <div className="flex items-center gap-4">
-                <SignedOut>
-                  <SignInButton />
-                  <SignUpButton />
-                </SignedOut>
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
+    <ConvexClientProvider>
+      <ClerkProvider>
+        <html lang="en">
+          <body className={`${rubik.className} antialiased`}>
+            <header className="border-b bg-white px-4 py-3">
+              <div className="mx-auto flex max-w-7xl items-center justify-between">
+                <h1 className="text-xl font-semibold">AI Ads Generator</h1>
+                <div className="flex items-center gap-4">
+                  <SignedOut>
+                    <SignInButton />
+                    <SignUpButton />
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
+                </div>
               </div>
-            </div>
-          </header>
-          <main>{children}</main>
-        </body>
-      </html>
-    </ClerkProvider>
+            </header>
+            <main>{children}</main>
+          </body>
+        </html>
+      </ClerkProvider>
+    </ConvexClientProvider>
   );
 }
