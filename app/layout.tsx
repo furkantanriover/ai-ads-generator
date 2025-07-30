@@ -1,4 +1,5 @@
 import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import {
   ClerkProvider,
   SignInButton,
@@ -28,23 +29,34 @@ export default function RootLayout({
   return (
     <ConvexClientProvider>
       <ClerkProvider>
-        <html lang="en">
-          <body className={`${rubik.className} antialiased`}>
-            <header className="border-b bg-white px-4 py-3">
-              <div className="mx-auto flex max-w-7xl items-center justify-between">
-                <h1 className="text-xl font-semibold">AI Ads Generator</h1>
-                <div className="flex items-center gap-4">
-                  <SignedOut>
-                    <SignInButton />
-                    <SignUpButton />
-                  </SignedOut>
-                  <SignedIn>
-                    <UserButton />
-                  </SignedIn>
+        <html lang="en" suppressHydrationWarning>
+          <body
+            className={`${rubik.className} ${rubik.style} antialiased bg-background text-foreground`}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {/* Header commented out - using sidebar instead */}
+              {/* <header className="border-b bg-background px-4 py-3">
+                <div className="mx-auto flex max-w-7xl items-center justify-between">
+                  <h1 className="text-xl font-semibold">AI Ads Generator</h1>
+                  <div className="flex items-center gap-4">
+                    <ThemeToggle />
+                    <SignedOut>
+                      <SignInButton />
+                      <SignUpButton />
+                    </SignedOut>
+                    <SignedIn>
+                      <UserButton />
+                    </SignedIn>
+                  </div>
                 </div>
-              </div>
-            </header>
-            <main>{children}</main>
+              </header> */}
+              <main>{children}</main>
+            </ThemeProvider>
           </body>
         </html>
       </ClerkProvider>
