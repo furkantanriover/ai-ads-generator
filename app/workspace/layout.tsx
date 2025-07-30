@@ -8,9 +8,7 @@ export default function WorkspaceLayout({
 }) {
   return (
     <WorkspaceProvider>
-      <main className="flex min-h-screen flex-col bg-background">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col bg-background">{children}</div>
     </WorkspaceProvider>
   );
 }

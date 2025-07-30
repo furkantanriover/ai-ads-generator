@@ -1,6 +1,10 @@
 "use client";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { UserDetail, UserDetailContext } from "@/context/UserDetailContext";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
@@ -37,9 +41,11 @@ function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
       <SidebarProvider>
         <AppSidebar />
-        <div>
+        <div className="flex-1 max-h-screen flex flex-col bg-background">
           <SidebarTrigger />
-          {children}
+          <div className="flex-1">
+            <SidebarInset>{children}</SidebarInset>
+          </div>
         </div>
       </SidebarProvider>
     </UserDetailContext.Provider>

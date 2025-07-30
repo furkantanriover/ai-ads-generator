@@ -55,7 +55,9 @@ export default function RootLayout({
                   </div>
                 </div>
               </header> */}
-              <main>{children}</main>
+              <main className="flex-1 w-full flex flex-col items-center justify-center min-h-screen">
+                {children}
+              </main>
             </ThemeProvider>
           </body>
         </html>
