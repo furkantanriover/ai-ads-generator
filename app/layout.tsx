@@ -1,13 +1,6 @@
 import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { ThemeProvider } from "@/providers/theme-provider";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
@@ -21,47 +14,29 @@ export const metadata: Metadata = {
   description: "Generate AI-powered advertisements",
 };
 
+import { QueryProvider } from "@/providers/query-provider";
+
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ConvexClientProvider>
-      <ClerkProvider>
-        <html lang="en" suppressHydrationWarning>
-          <body
-            className={`${rubik.className} ${rubik.style} antialiased bg-background text-foreground`}
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={rubik.className}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
           >
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {/* Header commented out - using sidebar instead */}
-              {/* <header className="border-b bg-background px-4 py-3">
-                <div className="mx-auto flex max-w-7xl items-center justify-between">
-                  <h1 className="text-xl font-semibold">AI Ads Generator</h1>
-                  <div className="flex items-center gap-4">
-                    <ThemeToggle />
-                    <SignedOut>
-                      <SignInButton />
-                      <SignUpButton />
-                    </SignedOut>
-                    <SignedIn>
-                      <UserButton />
-                    </SignedIn>
-                  </div>
-                </div>
-              </header> */}
-              <main className="flex-1 w-full flex flex-col items-center justify-center min-h-screen">
-                {children}
-              </main>
-            </ThemeProvider>
-          </body>
-        </html>
-      </ClerkProvider>
-    </ConvexClientProvider>
+            <ConvexClientProvider>
+              <QueryProvider>{children}</QueryProvider>
+            </ConvexClientProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
