@@ -2,6 +2,7 @@ import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
               <QueryProvider>{children}</QueryProvider>
             </ConvexClientProvider>
           </ThemeProvider>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>
