@@ -2,12 +2,40 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UserDetailContext } from "@/context/UserDetailContext";
+import { api } from "@/convex/_generated/api";
+import { useGenerateScript } from "@/hooks/use-generate-script";
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { Sparkles, Video, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  Globe,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
+import { useContext, useState } from "react";
+import { toast } from "sonner";
 
 const CreateAdPage = () => {
-  const [prompt, setPrompt] = useState("");
+  const [userInput, setUserInput] = useState("");
+  const { userDetail, setUserDetail } = useContext(UserDetailContext);
+  const [selectedLanguage, setSelectedLanguage] = useState("Turkish");
+  const [generatedScripts, setGeneratedScripts] = useState<any[] | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const CreateNewVideoData = useMutation(api.videoData.CreateNewVideoData);
+
+  const generateScriptMutation = useGenerateScript();
+
+  const languages = [
+    { code: "Turkish", name: "Türkçe", flag: "🇹🇷" },
+    { code: "English", name: "English", flag: "🇺🇸" },
+    { code: "German", name: "Deutsch", flag: "🇩🇪" },
+    { code: "French", name: "Français", flag: "🇫🇷" },
+    { code: "Spanish", name: "Español", flag: "🇪🇸" },
+    { code: "Italian", name: "Italiano", flag: "🇮🇹" },
+  ];
 
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -32,14 +60,58 @@ const CreateAdPage = () => {
     },
   };
 
-  const handleGenerate = () => {
-    if (prompt.trim()) {
-      console.log("Generating ad with prompt:", prompt);
+  const handleGenerate = async () => {
+    if (!userInput.trim()) {
+      toast.error("Lütfen bir konu girin");
+      return;
+    }
+
+    try {
+      const result = await generateScriptMutation.mutateAsync({
+        topic: userInput.trim(),
+        language: selectedLanguage,
+      });
+
+      const rawResult = (result?.content)
+        .replace("```json", "")
+        .replace("```", "");
+      const JSONResult = JSON.parse(rawResult);
+      const resp = await CreateNewVideoData({
+        uid: userDetail?._id,
+        topic: userInput,
+        scriptVariant: JSONResult,
+      });
+      console.log(resp);
+
+      // JSON parse etmeye çalış
+      try {
+        const scripts = JSON.parse(result.content);
+        setGeneratedScripts(scripts);
+        toast.success("Script'ler başarıyla oluşturuldu!");
+      } catch (parseError) {
+        // Eğer JSON parse edilemezse, raw content'i göster
+        setGeneratedScripts([{ scriptId: 1, content: result.content }]);
+        toast.success("Script başarıyla oluşturuldu!");
+      }
+    } catch (error) {
+      console.error("Generate script error:", error);
+      toast.error("Script oluşturulurken hata oluştu");
+    }
+  };
+
+  const copyToClipboard = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      toast.success("Script kopyalandı!");
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (error) {
+      toast.error("Kopyalama başarısız");
     }
   };
 
   return (
-    <div className="flex-1  w-full flex flex-col items-center justify-center p-8">
+    <div className="flex-1 w-full flex flex-col items-center justify-center p-8 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-center space-y-16">
         <motion.div
           className="max-w-2xl w-full text-center space-y-8"
@@ -95,6 +167,34 @@ const CreateAdPage = () => {
             </motion.p>
           </motion.div>
 
+          {/* Language Selection */}
+          <motion.div className="space-y-4" variants={itemVariants}>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Globe className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Script Dili Seçin
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-md mx-auto">
+              {languages.map((lang) => (
+                <motion.button
+                  key={lang.code}
+                  onClick={() => setSelectedLanguage(lang.code)}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    selectedLanguage === lang.code
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/50 bg-card"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="text-lg mb-1">{lang.flag}</div>
+                  <div className="text-xs font-medium">{lang.name}</div>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+
           {/* Input Section */}
           <motion.div className="space-y-4 mt-12" variants={itemVariants}>
             <motion.div
@@ -103,10 +203,11 @@ const CreateAdPage = () => {
             >
               <Input
                 type="text"
-                placeholder="Enter the topic or product info"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Ürün veya hizmet bilgisini girin (örn: Pro Draxler Çim Biçme Makinesi)"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
                 className="w-full h-14 text-lg px-6 rounded-xl border-2 border-border focus:border-primary transition-colors bg-card text-center"
+                onKeyPress={(e) => e.key === "Enter" && handleGenerate()}
               />
             </motion.div>
 
@@ -117,13 +218,19 @@ const CreateAdPage = () => {
             >
               <Button
                 onClick={handleGenerate}
-                disabled={!prompt.trim()}
+                disabled={!userInput.trim() || generateScriptMutation.isPending}
                 size="lg"
                 className="w-full h-14 text-lg rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <span className="flex items-center justify-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Generate
+                  {generateScriptMutation.isPending ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                  {generateScriptMutation.isPending
+                    ? "Oluşturuluyor..."
+                    : "Script Oluştur"}
                 </span>
               </Button>
             </motion.div>
@@ -142,17 +249,17 @@ const CreateAdPage = () => {
               icon: <Sparkles className="w-8 h-8" />,
               title: "AI-Powered",
               description:
-                "Advanced AI creates professional videos automatically",
+                "Gelişmiş AI ile profesyonel videolar otomatik oluşturur",
             },
             {
-              icon: <Video className="w-8 h-8" />,
-              title: "High Quality",
-              description: "Studio-quality output ready for any platform",
+              icon: <Globe className="w-8 h-8" />,
+              title: "Çoklu Dil",
+              description: "6 farklı dilde script üretimi desteklenir",
             },
             {
               icon: <ArrowRight className="w-8 h-8" />,
-              title: "Instant Results",
-              description: "Get your video in minutes, not hours",
+              title: "Anında Sonuç",
+              description: "Saatler değil, dakikalar içinde sonuç alın",
             },
           ].map((feature, index) => (
             <motion.div
