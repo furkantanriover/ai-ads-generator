@@ -31,7 +31,7 @@ export const CreateNewUser = mutation({
 
       return {
         ...data,
-        id: result,
+        _id: result,
       };
     }
 

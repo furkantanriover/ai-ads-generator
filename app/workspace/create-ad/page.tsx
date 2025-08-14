@@ -2,28 +2,24 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserDetailContext } from "@/context/UserDetailContext";
+import {
+  UserDetailContext,
+  UserDetailContextType,
+} from "@/context/UserDetailContext";
 import { api } from "@/convex/_generated/api";
 import { useGenerateScript } from "@/hooks/use-generate-script";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Check,
-  Copy,
-  Globe,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Globe, Loader2, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 
 const CreateAdPage = () => {
   const [userInput, setUserInput] = useState("");
-  const { userDetail, setUserDetail } = useContext(UserDetailContext);
+  const { userDetail } = useContext(UserDetailContext) as UserDetailContextType;
   const [selectedLanguage, setSelectedLanguage] = useState("Turkish");
-  const [generatedScripts, setGeneratedScripts] = useState<any[] | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const router = useRouter();
   const CreateNewVideoData = useMutation(api.videoData.CreateNewVideoData);
 
   const generateScriptMutation = useGenerateScript();
@@ -77,41 +73,21 @@ const CreateAdPage = () => {
         .replace("```", "");
       const JSONResult = JSON.parse(rawResult);
       const resp = await CreateNewVideoData({
-        uid: userDetail?._id,
+        uid: userDetail?.id,
         topic: userInput,
         scriptVariant: JSONResult,
       });
       console.log(resp);
-
-      // JSON parse etmeye çalış
-      try {
-        const scripts = JSON.parse(result.content);
-        setGeneratedScripts(scripts);
-        toast.success("Script'ler başarıyla oluşturuldu!");
-      } catch (parseError) {
-        // Eğer JSON parse edilemezse, raw content'i göster
-        setGeneratedScripts([{ scriptId: 1, content: result.content }]);
-        toast.success("Script başarıyla oluşturuldu!");
-      }
+      toast.success("Script başarıyla oluşturuldu!");
+      router.push(`/workspace/create-ad/` + resp);
     } catch (error) {
-      console.error("Generate script error:", error);
+      console.log(error);
       toast.error("Script oluşturulurken hata oluştu");
     }
   };
 
-  const copyToClipboard = async (content: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedIndex(index);
-      toast.success("Script kopyalandı!");
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (error) {
-      toast.error("Kopyalama başarısız");
-    }
-  };
-
   return (
-    <div className="flex-1 w-full flex flex-col items-center justify-center p-8 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex-1 w-full flex flex-col items-center justify-center p-8 min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-center space-y-16">
         <motion.div
           className="max-w-2xl w-full text-center space-y-8"
@@ -126,25 +102,25 @@ const CreateAdPage = () => {
           >
             <div className="relative">
               <motion.div
-                className="w-48 h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl"
+                className="w-48 h-48 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="text-white text-center">
+                <div className="text-primary-foreground text-center">
                   <div className="text-6xl font-bold mb-2">AD</div>
                   <div className="flex gap-2 justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                    <div className="w-3 h-3 bg-primary-foreground rounded-full"></div>
+                    <div className="w-3 h-3 bg-primary-foreground rounded-full"></div>
+                    <div className="w-3 h-3 bg-primary-foreground rounded-full"></div>
                   </div>
                 </div>
               </motion.div>
               <motion.div
-                className="absolute -bottom-4 -right-4 w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center"
+                className="absolute -bottom-4 -right-4 w-16 h-16 bg-muted rounded-2xl flex items-center justify-center"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[12px] border-b-blue-600"></div>
+                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[12px] border-b-primary"></div>
               </motion.div>
             </div>
           </motion.div>
@@ -220,7 +196,7 @@ const CreateAdPage = () => {
                 onClick={handleGenerate}
                 disabled={!userInput.trim() || generateScriptMutation.isPending}
                 size="lg"
-                className="w-full h-14 text-lg rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full h-14 text-lg rounded-xl font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <span className="flex items-center justify-center gap-2">
                   {generateScriptMutation.isPending ? (
